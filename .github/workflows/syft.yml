@@ -1,0 +1,28 @@
+name: Generate SBOM from Source (Syft)
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+jobs:
+  sbom-source:
+    runs-on: ubuntu-latest
+    name: Generate SBOM for Source
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Syft
+        run: |
+          curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh | sh -s -- -b /usr/local/bin
+      - name: Generate SPDX SBOM from source
+        run: |
+          mkdir -p sbom
+          syft dir:. -o spdx-json > sbom/nowinandroid-source.spdx.json
+      - name: Upload SBOM artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-source-sbom
+          path: sbom/
