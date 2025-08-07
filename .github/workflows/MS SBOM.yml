@@ -1,45 +1,47 @@
-name: Generate MS SBOM
+name: Generate SBOM with Microsoft SBOM Tool
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
+  workflow_dispatch:
 
 jobs:
-  generate-sbom:
+  generate-ms-sbom:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v3
+      - name: Checkout repo
+        uses: actions/checkout@v4
 
-      - name: Set up JDK
-        uses: actions/setup-java@v3
+      - name: Set up Java
+        uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
-          java-version: '17' # or your project version
+          java-version: '17' # or 11 depending on the project
 
-      - name: Download SBOM Tool
-        run: |
-          curl -LO https://github.com/microsoft/sbom-tool/releases/latest/download/sbom-tool-linux-x64
-          chmod +x sbom-tool-linux-x64
-          sudo mv sbom-tool-linux-x64 /usr/local/bin/sbom-tool
-      - name: Build APK (Optional, but helps identify deps)
+      - name: Grant execute permissions to Gradle wrapper
+        run: chmod +x ./gradlew
+
+      - name: Build APK (optional, if you want .apk output)
         run: ./gradlew assembleRelease
+
+      - name: Download Microsoft SBOM Tool
+        run: |
+          wget https://github.com/microsoft/sbom-tool/releases/latest/download/sbom-tool-linux-x64.tar.gz
+          tar -xzf sbom-tool-linux-x64.tar.gz
+          chmod +x sbom-tool
 
       - name: Generate SBOM
         run: |
-          mkdir -p ./sbom
-          sbom-tool generate \
-            -b . \
-            -bc . \
-            -pn "Testing_MS_SBOM_APK" \
-            -pv "1.0.0" \
-            -ps "https://github.com/pooja-p5/AppManager_apk/" \
-            -nsb "https://testcompany.com/sbom" \
-            -m ./sbom
-      - name: Upload SBOM Artifact
+          ./sbom-tool generate \
+            --build-path . \
+            --output-path sbom-output \
+            --format json \
+            --package-name AppManager_apk \
+            --package-version 1.0.0
+
+      - name: Upload SBOM artifact
         uses: actions/upload-artifact@v4
         with:
-          name: sbom
-          path: ./sbom
+          name: ms-sbom
+          path: sbom-output
