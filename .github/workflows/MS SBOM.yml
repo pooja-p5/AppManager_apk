@@ -29,14 +29,7 @@ jobs:
         run: |
           curl -Lo $RUNNER_TEMP/sbom-tool https://github.com/microsoft/sbom-tool/releases/latest/download/sbom-tool-linux-x64
           chmod +x $RUNNER_TEMP/sbom-tool
-          cd $RUNNER_TEMP/
-          ./sbom-tool version
-          ./sbom-tool generate \
-            --build-path . \
-            --output-path sbom-output \
-            --format json \
-            --package-name AppManager_apk \
-            --package-version 1.0.0
+          $RUNNER_TEMP/sbom-tool generate -b ./gradlew -bc . -pn Webgoat -pv 1.0.0 -ps Philips_test -nsb https://sbom.philips.com -V Verbose
 
       - name: Upload SBOM artifact
         uses: actions/upload-artifact@v4
