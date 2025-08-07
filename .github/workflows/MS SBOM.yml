@@ -29,7 +29,9 @@ jobs:
         run: |
           curl -Lo $RUNNER_TEMP/sbom-tool https://github.com/microsoft/sbom-tool/releases/latest/download/sbom-tool-linux-x64
           chmod +x $RUNNER_TEMP/sbom-tool
-          $RUNNER_TEMP/sbom-tool generate \
+          cd $RUNNER_TEMP/
+          ./sbom-tool version
+          ./sbom-tool generate \
             --build-path . \
             --output-path sbom-output \
             --format json \
