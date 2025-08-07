@@ -25,20 +25,11 @@ jobs:
       - name: Build APK (optional, if you want .apk output)
         run: ./gradlew assembleRelease
 
-      - name: Download Microsoft SBOM Tool
-        run: |
-          wget https://github.com/microsoft/sbom-tool/releases/latest/download/sbom-tool-linux-x64.tar.gz
-          tar -xzf sbom-tool-linux-x64.tar.gz
-          chmod +x sbom-tool
-
       - name: Generate SBOM
         run: |
-          ./sbom-tool generate \
-            --build-path . \
-            --output-path sbom-output \
-            --format json \
-            --package-name AppManager_apk \
-            --package-version 1.0.0
+          curl -Lo $RUNNER_TEMP/sbom-tool https://github.com/microsoft/sbom-tool/releases/latest/download/sbom-tool-linux-x64
+          chmod +x $RUNNER_TEMP/sbom-tool
+          $RUNNER_TEMP/sbom-tool generate -b ./config -bc . -pn Appmanager_apk -pv 1.0.0 -ps Philips_test -nsb https://sbom.philips.com      
 
       - name: Upload SBOM artifact
         uses: actions/upload-artifact@v4
